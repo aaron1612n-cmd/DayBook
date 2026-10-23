@@ -137,7 +137,7 @@ private struct YearProgress: View {
                         .aspectRatio(1, contentMode: .fit)
                 }
             }
-            Text("\(total - day) days left in \(cal.component(.year, from: now))")
+            Text("\(total - day) days left in \(String(cal.component(.year, from: now)))")
                 .font(theme.body(14))
                 .foregroundStyle(theme.muted)
         }
