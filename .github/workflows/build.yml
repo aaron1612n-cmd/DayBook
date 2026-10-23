@@ -1,0 +1,96 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    name: Unsigned .ipa
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Build for device (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Daybook.xcodeproj \
+            -scheme Daybook \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tee build.log | grep -E "error:|warning: .*Daybook|BUILD" || true
+          test -d build/Build/Products/Release-iphoneos/Daybook.app
+
+      - name: Package .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/Daybook.app Payload/
+          ls Payload/Daybook.app/PlugIns || true
+          zip -qry Daybook.ipa Payload
+          ls -lh Daybook.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Daybook-ipa
+          path: Daybook.ipa
+
+      - name: Publish to the "latest" release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest Daybook.ipa \
+            --title "Daybook (latest build)" \
+            --notes "Unsigned build of ${GITHUB_SHA::7}. Download Daybook.ipa and import it into eSign."
+
+  screenshots:
+    name: Simulator screenshots
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Build for simulator
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Daybook.xcodeproj \
+            -scheme Daybook \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath simbuild \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tee simbuild.log | grep -E "error:|BUILD" || true
+          test -d simbuild/Build/Products/Debug-iphonesimulator/Daybook.app
+
+      - name: Take screenshots
+        run: scripts/screenshots.sh simbuild/Build/Products/Debug-iphonesimulator/Daybook.app shots
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots

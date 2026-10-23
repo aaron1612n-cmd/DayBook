@@ -1,0 +1,94 @@
+name: Daybook
+options:
+  bundleIdPrefix: com.aaron
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+    DEVELOPMENT_TEAM: ""
+targets:
+  Daybook:
+    type: application
+    platform: iOS
+    sources:
+      - path: Daybook
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aaron.daybook
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: Daybook/Daybook.entitlements
+    entitlements:
+      path: Daybook/Daybook.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.aaron.daybook
+    info:
+      path: Daybook/Info.plist
+      properties:
+        CFBundleDisplayName: Daybook
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: ""
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSLocationWhenInUseUsageDescription: Daybook uses your location to show today's weather where you are.
+        UIAppFonts:
+          - InstrumentSerif-Regular.ttf
+          - InstrumentSerif-Italic.ttf
+          - IBMPlexMono-Regular.ttf
+          - Anton-Regular.ttf
+          - SpaceMono-Regular.ttf
+          - SpaceMono-Bold.ttf
+          - VT323-Regular.ttf
+    dependencies:
+      - target: DaybookWidget
+  DaybookWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: DaybookWidget
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aaron.daybook.widget
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_ENTITLEMENTS: DaybookWidget/DaybookWidget.entitlements
+        SKIP_INSTALL: "YES"
+    entitlements:
+      path: DaybookWidget/DaybookWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.aaron.daybook
+    info:
+      path: DaybookWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Daybook
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        UIAppFonts:
+          - InstrumentSerif-Regular.ttf
+          - InstrumentSerif-Italic.ttf
+          - IBMPlexMono-Regular.ttf
+          - Anton-Regular.ttf
+          - SpaceMono-Regular.ttf
+          - SpaceMono-Bold.ttf
+          - VT323-Regular.ttf
