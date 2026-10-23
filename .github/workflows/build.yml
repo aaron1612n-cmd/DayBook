@@ -94,3 +94,13 @@ jobs:
         with:
           name: screenshots
           path: shots
+
+      - name: Publish screenshots to the "screenshots" pre-release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd shots && zip -q ../screenshots.zip *.png)
+          gh release delete screenshots --yes --cleanup-tag || true
+          gh release create screenshots screenshots.zip --prerelease \
+            --title "Screenshots" --notes "Simulator screenshots of ${GITHUB_SHA::7}."
